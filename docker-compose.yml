@@ -1,85 +1,72 @@
-version: '1'
+version: '3'
 services:
 
-  redis:
-    image: redis:alpine
+#  redis:
+#    image: redis:3.2.11
+#    volumes:
+#      - session-data:/data
+#    networks:
+#      - backend
 
-  db:
-    image: postgres:9.4
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - index-data:/usr/share/elasticsearch/data
     networks:
       - backend
-    deploy:
-      placement:
-        constraints: [node.role == manager]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
   nats:
-
-
+    image: nats:1.0.4
+    networks:
+      - backend
 
   crawl-service:
-    image: dockersamples/examplevotingapp_vote:before
-    ports:
-      - 5000:80
-    networks:
-      - frontend
-    depends_on:
-      - redis
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 2
-      restart_policy:
-        condition: on-failure
-
-  band:
-    image: dockersamples/examplevotingapp_result:before
-    ports:
-      - 5001:80
-    networks:
-      - backend
-    depends_on:
-      - db
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-
-  worker:
-    image: dockersamples/examplevotingapp_worker
-    networks:
-      - frontend
-      - backend
-    deploy:
-      mode: replicated
-      replicas: 1
-      labels: [APP=VOTING]
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 3
-        window: 120s
-      placement:
-        constraints: [node.role == manager]
-
-  visualizer:
-    image: dockersamples/visualizer:stable
-    ports:
-      - "8080:8080"
-    stop_grace_period: 1m30s
+    image: node:6.11.4
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    deploy:
-      placement:
-        constraints: [node.role == manager]
+      - crawl-data:/var/whatsclose-data
+    networks:
+      - backend
+    depends_on:
+      - nats
+
+  band-service:
+    image: node:6.11.4
+    volumes:
+      - band-data:/var/whatsclose-data
+    networks:
+      - backend
+    depends_on:
+      - nats
+
+  geocode-service:
+    image: node:6.11.4
+    volumes:
+      - geolocation-data:/var/whatsclose-data
+    networks:
+      - backend
+    depends_on:
+      - nats
+
+  index-service:
+    image: node:6.11.4
+    networks:
+      - backend
+    depends_on:
+      - elasticsearch
+      - nats
 
 networks:
   frontend:
   backend:
 
 volumes:
-  db-data:
+#  session-data:
+  index-data:
+  crawl-data:
+  geolocation-data:
+  band-data:
+
