@@ -3,21 +3,13 @@ services:
 
 #  redis:
 #    image: redis:3.2.11
-#    volumes:
-#      - session-data:/data
 #    networks:
 #      - backend
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
-    volumes:
-      - index-data:/usr/share/elasticsearch/data
-    networks:
-      - backend
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
+#    networks:
+#      - backend
 
   nats:
     image: nats:1.0.4
@@ -25,48 +17,47 @@ services:
       - backend
 
   crawl-service:
-    image: node:6.11.4
-    volumes:
-      - crawl-data:/var/whatsclose-data
+    build:
+      context: ${CRAWL_SOURCES}
+      dockerfile: Dockerfile
     networks:
       - backend
     depends_on:
       - nats
 
-  band-service:
-    image: node:6.11.4
-    volumes:
-      - band-data:/var/whatsclose-data
-    networks:
-      - backend
-    depends_on:
-      - nats
-
-  geocode-service:
-    image: node:6.11.4
-    volumes:
-      - geolocation-data:/var/whatsclose-data
-    networks:
-      - backend
-    depends_on:
-      - nats
-
-  index-service:
-    image: node:6.11.4
-    networks:
-      - backend
-    depends_on:
-      - elasticsearch
-      - nats
+#  band-service:
+#    image: node:6.11.4
+#    networks:
+#      - backend
+#    depends_on:
+#      - nats
+#
+#  geocode-service:
+#    image: node:6.11.4
+#    networks:
+#      - backend
+#    depends_on:
+#      - nats
+#
+#  index-service:
+#    image: node:6.11.4
+#    networks:
+#      - backend
+#    depends_on:
+#      - elasticsearch
+#      - nats
 
 networks:
   frontend:
   backend:
 
 volumes:
-#  session-data:
-  index-data:
+  #session-data:
+  #index-data:
   crawl-data:
-  geolocation-data:
-  band-data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${CRAWL_DATA}
+  #geolocation-data:
+  #band-data:
 

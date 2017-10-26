@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+#  redis:
+#    volumes:
+#      - session-data:/data
+
+#  elasticsearch:
+#    volumes:
+#      - index-data:/usr/share/elasticsearch/data
+#    environment:
+#      - discovery.type=single-node
+#      - xpack.security.enabled=false
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  nats:
+    ports:
+      - ${NATS_PORT}:${NATS_PORT}
+      - ${NATS_MONITORING_PORT}:${NATS_MONITORING_PORT}
+      - ${NATS_ROUTING_PORT}:${NATS_ROUTING_PORT}
+    container_name: nats
+
+  crawl-service:
+    volumes:
+      - crawl-data:/var/whatsclose-data
+      - ${CRAWL_SOURCES}:/home/node/app
+    container_name: crawl-service
+
+#  band-service:
+#    volumes:
+#      - band-data:/var/whatsclose-data
+#
+#  geocode-service:
+#    volumes:
+#      - geolocation-data:/var/whatsclose-data
+#
+#  index-service:
+
