@@ -25,14 +25,32 @@ services:
       - crawl-data:/var/whatsclose-data
       - ${CRAWL_SOURCES}:/home/node/app
     container_name: crawl-service
+    environment:
+      - LOGGER_LEVEL
+      - LOGGER_ENABLED
+      - NATS_HOST
+      - NATS_PORT
+      - NATS_USER
+      - NATS_PASSWORD
+      - NATS_PROTOBUF_ENABLED
 
-#  band-service:
-#    volumes:
-#      - band-data:/var/whatsclose-data
+  band-service:
+    volumes:
+      - band-data:/var/whatsclose-data
+      - ${BAND_SOURCES}:/home/node/app
+    container_name: band-service
+    environment:
+      - LOGGER_LEVEL
+      - LOGGER_ENABLED
+      - NATS_HOST
+      - NATS_PORT
+      - NATS_USER
+      - NATS_PASSWORD
+      - NATS_PROTOBUF_ENABLED
+
 #
 #  geocode-service:
 #    volumes:
 #      - geolocation-data:/var/whatsclose-data
 #
 #  index-service:
-

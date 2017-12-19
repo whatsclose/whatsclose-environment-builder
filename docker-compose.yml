@@ -25,12 +25,14 @@ services:
     depends_on:
       - nats
 
-#  band-service:
-#    image: node:6.11.4
-#    networks:
-#      - backend
-#    depends_on:
-#      - nats
+  band-service:
+    build:
+      context: ${BAND_SOURCES}
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      - nats
 #
 #  geocode-service:
 #    image: node:6.11.4
@@ -58,6 +60,10 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${CRAWL_DATA}
+  band-data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BAND_DATA}
   #geolocation-data:
   #band-data:
 
